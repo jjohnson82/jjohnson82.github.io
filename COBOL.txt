@@ -1,0 +1,431 @@
+       program-id. VSEX5_3 as "VSEX5_3.VSEX5_3".
+      
+       IDENTIFICATION DIVISION.
+      /**************************
+      
+       program-id.  vsex5_3.
+       AUTHOR.     ROBERT GELIN/JON JOHNSON.
+       INSTALLATION.  M STATE.
+       DATE-WRITTEN.  MARCH 18TH 2019.
+       DATE-COMPILED.
+      /******************************************************************************************************************************
+      * PROGRAM NARRATIVE                                                                                                            *
+      *THIS PROGRAM READS ALL RECORDS IN THE CUSTOMER SALES FILE FOR EZ AUTO SALES AND CREATES A SATISFIED CUSTOMER REPORT.          *
+      *FOR EACH SATISFIED CUSTOMER THE CUSTOMER NUMBER, NAME, PURCHASE DATE, PURCHASE PRICE AND SATISFACTION RATING ARE PRINTED.     *
+      *A RECORD COUNT, TOTAL AMOUNT FOR PURCHASES, AND AVERAGE PURCHASE PRICE IS PRINTED AT THE END OF THE REPORT.                   *
+      *                                                                                                                              *
+      *        INPUT: CUSTSALE.DAT -CUSTOMER SALES FILE                                                                              *
+      *                                                                                                                              *
+      *        OUTPUT: VSEX5-3.RPT  -SATISFIED CUSTOMER REPORT                                                                       *
+      *                                                                                                                              *
+      *                                                                                                                              *
+      ********************************************************************************************************************************
+       
+       ENVIRONMENT DIVISION.
+      ***********************
+       INPUT-OUTPUT SECTION.
+      ***********************
+       FILE-CONTROL.
+      
+           SELECT CUSTOMER-SALES-FILE
+               ASSIGN TO "C:\COBOL\DATA\Data\CUSTSALE.DAT".
+           SELECT SATISFIED-CUSTOMER-REPORT
+               ASSIGN TO "C:\COBOL\SOLUTION\VSEX5-3.RPT".
+      /
+      
+       DATA DIVISION.
+      ***************
+       FILE SECTION.
+      ***************
+      
+      ****************************************
+      *                                      *
+      *INPUT-FILE -- CUSTOMER SALES FILE     *
+      *                                      *
+      ****************************************
+      
+       FD CUSTOMER-SALES-FILE.
+      
+       01 CUSTOMER-RECORD                  PIC X(76).
+      
+      
+      *********************************************
+      *                                           *
+      *REPORT-FILE - SATISFIED CUSTOMER REPORT    *
+      *                                           *
+      *********************************************
+      
+       FD SATISFIED-CUSTOMER-REPORT.
+      
+       01 SATISFIED-LINE-OUT                PIC X(80).
+      
+      
+      /
+      
+       WORKING-STORAGE SECTION.
+      **************************
+      
+      
+      *********************************************
+      *                                           *
+      *             SWITCHES                      *
+      *                                           *
+      *********************************************
+      
+       01 SWITCHES.
+           02 SW-END-OF-FILE         PIC X.
+               88 END-OF-FILE                 VALUE "Y".
+      
+      
+      
+      
+      *********************************************
+      *                                           *
+      *     ACCUMULATORS                          *
+      *                                           *
+      *********************************************
+      
+       01 ACCUMULATORS.
+      
+           02 AC-LINE-COUNT                 PIC 999.
+           02 AC-PAGE-COUNT                 PIC 999.
+           02 AC-RECORD-COUNT               PIC 9(5).
+           02 AC-TOTAL-PURCHASES            PIC 9(6)V99.
+      
+      
+      
+      *********************************************
+      *                                           *
+      *          WORK AREA FIELDS                 *
+      *                                           *
+      *********************************************
+      
+       01 WORK-AREA.
+      
+           02 WA-TODAYS-DATE-TIME.
+               03 WA-TODAYS-DATE.
+                   04 WA-TODAYS-YEAR       PIC 9(4).
+      
+      
+                   04 WA-TODAYS-MONTH      PIC 99.
+                   04 WA-TODAYS-DAY        PIC 99.
+              03  WA-TODAYS-TIME. 
+                   04 WA-TODAYS-HOUR       PIC 99. 
+                   04 WA-TODAYS-MINUTES    PIC 99.
+              03                           PIC X(9).
+      
+           02 WA-DATE.
+               03 WA-MONTH                 PIC 99. 
+               03 WA-DAY                   PIC 99.
+               03 WA-YEAR                  PIC 9(4).
+      
+           02 WA-RUN-DATE
+               REDEFINES WA-DATE           PIC 9(8).
+      
+      *********************************************
+      *                                           *
+      *     CUSTOMER SALES RECORD                 *
+      *                                           *
+      *********************************************
+      
+       01 CUSTOMER-SALES-RECORD.
+           02                              PIC X(9).
+           02  SR-CUSTOMER-NUMBER          PIC 9(4).
+           02  SR-CUSTOMER-NAME            PIC X(20).
+           02  SR-PURCHASE-DATE            PIC 9(8).
+           02                              PIC X(20).
+           02  SR-PURCHASE-PRICE           PIC 9(5)V99.
+           02                              PIC X(7).
+           02  SR-SATISFACTION-CODE        PIC X.
+               88  DISSATISFIED            VALUE"0".
+               88  UNDECIDED               VALUE"1".
+               88  SATISFIED               VALUE"2".
+      
+      
+      *****************************************************
+      *                                                   *
+      *REPORT HEADINGS FOR THE SATISFIED CUSTOMER REPORT. *
+      *                                                   *
+      *****************************************************
+      
+       01 REPORT-HEADINGS.
+      
+           02 RH-LINE-1.
+               03                              PIC X(7)  VALUE SPACES.
+               03                              PIC X(6)  VALUE "DATE: ".
+               03  RH-DATE                     PIC Z9/99/9999.
+               03                              PIC X(15) VALUE SPACES.
+               03                              PIC X(13) VALUE "EZ AUTO SALES".
+               03                              PIC X(17) VALUE SPACES.
+               03                              PIC X(5)  VALUE "PAGE ".
+               03  RH-PAGE-COUNT               PIC ZZ9.
+           02 RH-LINE-2.
+               03                              PIC X(7)  VALUE SPACES.
+               03                              PIC X(6)  VALUE "TIME: ".
+               03  RH-HOUR                     PIC Z9.
+               03                              PIC X     VALUE ":".
+               03  RH-MINUTES                  PIC 99.
+               03                              PIC X     VALUE SPACE.
+               03  RH-AM-PM                    PIC XX.
+               03                              PIC X(12) VALUE SPACES.
+               03                              PIC X(25) VALUE "SATISFIED CUSTOMER REPORT".
+           02 RH-LINE-2A.
+               03                              PIC X(7) VALUE SPACES.
+               03                              PIC X(13) VALUE "ROBERT GELIN".
+           02 RH-LINE-3.
+               03                              PIC X(7)  VALUE SPACES.
+               03                              PIC X(8)  VALUE "CUSTOMER".
+               03                              PIC XXX   VALUE SPACES.
+               03                              PIC X(8)  VALUE "CUSTOMER".
+               03                              PIC X(14) VALUE SPACES.
+               03                              PIC X(8)  VALUE "PURCHASE".
+               03                              PIC X(4)  VALUE SPACES.
+               03                              PIC X(8)  VALUE "PURCHASE".
+               03                              PIC XXXX  VALUE SPACES.
+               03                              PIC X(12) VALUE "SATISFACTION".
+      /
+           02 RH-LINE-4.
+               03                              PIC X(7)  VALUE SPACES.
+               03                              PIC X(6)  VALUE "NUMBER".
+               03                              PIC X(5)  VALUE SPACES.
+               03                              PIC X(4)  VALUE "NAME".
+               03                              PIC X(18) VALUE SPACES.
+               03                              PIC X(4)  VALUE "DATE".
+               03                              PIC X(8)  VALUE SPACES.
+               03                              PIC X(5)  VALUE "PRICE".
+               03                              PIC X(7)  VALUE SPACES.
+               03                              PIC X(6)  VALUE "RATING".
+      
+           02 RH-LINE-5. 
+               03                              PIC X(7)  VALUE SPACES.
+               03                              PIC X(9)  VALUE ALL"-".
+               03                              PIC XX    VALUE SPACES.
+               03                              PIC X(20) VALUE ALL"-".
+               03                              PIC XX    VALUE SPACES.
+               03                              PIC X(10) VALUE ALL"-".
+               03                              PIC XX    VALUE SPACES.
+               03                              PIC X(10) VALUE ALL"-".
+               03                              PIC XX    VALUE SPACES.
+               03                              PIC X(12) VALUE ALL"-".
+      
+      
+      *****************************************************
+      *                                                   *
+      *DETAIL LINE FOR THE SATISFIED CUSTOMER REPORT.     *
+      *                                                   *
+      *****************************************************
+      
+       01 DETAIL-LINE.
+      
+           02                                  PIC X(9)  VALUE SPACES.
+           02  DL-CUSTOMER-NUMBER              PIC ZZZ9.
+           02                                  PIC X(5)  VALUE SPACES.
+           02  DL-CUSTOMER-NAME                PIC X(20).
+           02                                  PIC XX    VALUE SPACES.
+           02  DL-PURCHASE-DATE                PIC Z9/99/9999.
+           02                                  PIC XX    VALUE SPACES.
+           02  DL-PURCHASE-PRICE               PIC $$$,$$$.99.
+           02                                  PIC XX    VALUE SPACES.
+           02  DL-SATISFACTION-RATING          PIC X(12).
+      /
+      
+      ****************************************************
+      *                                                   *
+      *SUMMARY LINES FOR THE SATISFIED CUSTOMER REPORT    *
+      *                                                   *
+      *****************************************************
+      
+       01 SUMMARY-LINES.
+      
+           02 SL-LINE-1.
+               03                              PIC X(25)  VALUE SPACES.
+               03                              PIC X(35)  VALUE "TOTAL CUSTOMERS LISTED =           ".
+               03  SL-RECORD-COUNT             PIC ZZ9.
+           02 SL-LINE-2.
+               03                              PIC X(25)  VALUE SPACES.
+               03                              PIC X(28)  VALUE "TOTAL PURCHASES        = ".
+               03  SL-TOTAL-PURCHASES          PIC ZZZ,ZZ9.99.
+           02 SL-LINE-3.
+               03                              PIC X(25) VALUE SPACES. 
+               03                              PIC X(28) VALUE "AVERAGE PURCHASE PRICE=  ".
+               03   SL-AVERAGE-PURCHASE        PIC ZZZ,ZZ9.99.
+      
+      
+           02 SL-LINE-4.
+               03                              PIC X(34) VALUE SPACES. 
+               03                              PIC X(13) VALUE "END OF REPORT".
+      
+      /
+       
+       PROCEDURE DIVISION. 
+      ********************
+      ***********************************************************
+      *                                                         *
+      *MAIN-PROGRAM -THIS IS THE MAIN PARAGRAPH OF THIS PROGRAM *
+      *                                                         *
+      ***********************************************************
+      
+       MAIN-PROGRAM.
+      
+           PERFORM A-100-INITIALIZATION.
+           PERFORM B-100-PROCESS-FILE.
+           PERFORM C-100-WRAP-UP.
+           STOP RUN.
+      ***********************************************************
+      *                                                         *
+      *THE INITIALIZATION PARAGRAPH FOLLOWS                     *
+      *                                                         *
+      ***********************************************************
+      
+       A-100-INITIALIZATION.
+      
+           INITIALIZE ACCUMULATORS.
+      
+           MOVE FUNCTION CURRENT-DATE TO WA-TODAYS-DATE-TIME.
+      
+           MOVE WA-TODAYS-MONTH TO WA-MONTH.
+           MOVE WA-TODAYS-DAY TO WA-DAY.
+           MOVE WA-TODAYS-YEAR TO WA-YEAR.
+           MOVE WA-RUN-DATE TO RH-DATE.
+      
+      
+           EVALUATE TRUE
+               WHEN WA-TODAYS-HOUR = 00
+                   MOVE "AM" TO RH-AM-PM
+                   MOVE 12 TO WA-TODAYS-HOUR
+               WHEN WA-TODAYS-HOUR < 12
+                   MOVE "AM" TO RH-AM-PM
+               WHEN WA-TODAYS-HOUR = 12
+                   MOVE "PM" TO RH-AM-PM
+               WHEN WA-TODAYS-HOUR > 12
+                   MOVE "PM" TO RH-AM-PM
+                   SUBTRACT 12 FROM WA-TODAYS-HOUR.
+           MOVE WA-TODAYS-HOUR TO RH-HOUR.
+           MOVE WA-TODAYS-MINUTES TO RH-MINUTES.
+      
+           OPEN INPUT CUSTOMER-SALES-FILE
+               OUTPUT SATISFIED-CUSTOMER-REPORT.
+      
+      /
+      ***********************************************************
+      *                                                         *
+      *FILE PROCESSING CONTROL PARAGRAPH                        *
+      *                                                         *
+      ***********************************************************
+      
+       B-100-PROCESS-FILE.
+      
+           MOVE "N" TO SW-END-OF-FILE.
+           READ CUSTOMER-SALES-FILE INTO CUSTOMER-SALES-RECORD
+               AT END MOVE "Y" TO SW-END-OF-FILE.
+           PERFORM B-200-PROCESS-RECORD THRU B-200-EXIT
+               UNTIL END-OF-FILE.
+           MOVE AC-RECORD-COUNT TO SL-RECORD-COUNT.
+           MOVE AC-TOTAL-PURCHASES TO SL-TOTAL-PURCHASES.
+           DIVIDE AC-TOTAL-PURCHASES BY AC-RECORD-COUNT
+               GIVING SL-AVERAGE-PURCHASE.
+      
+      
+      
+      /
+      ***********************************************************
+      *                                                         *
+      *MOVE INPUT FIELDS TO OUTPUT AREAS AND PRINT              *
+      *                                                         *
+      ***********************************************************
+      
+       B-200-PROCESS-RECORD.
+      
+           IF AC-LINE-COUNT = 0
+               PERFORM B-300-PRINT-HEADINGS.
+           IF DISSATISFIED 
+               READ CUSTOMER-SALES-FILE INTO CUSTOMER-SALES-RECORD
+                   AT END MOVE "Y" TO SW-END-OF-FILE
+               END-READ
+               GO TO B-200-EXIT.
+      
+           MOVE SR-CUSTOMER-NUMBER TO DL-CUSTOMER-NUMBER.
+           MOVE SR-CUSTOMER-NAME   TO DL-CUSTOMER-NAME.
+           MOVE SR-PURCHASE-DATE   TO DL-PURCHASE-DATE.
+           MOVE SR-PURCHASE-PRICE  TO DL-PURCHASE-PRICE.
+           
+      
+           IF UNDECIDED
+               MOVE "UNDECIDED"   TO DL-SATISFACTION-RATING.
+           IF SATISFIED
+               MOVE "SATISFIED"   TO DL-SATISFACTION-RATING.
+      
+      
+           ADD SR-PURCHASE-PRICE  TO AC-TOTAL-PURCHASES
+               ON SIZE ERROR DISPLAY "ACCUMULATOR TOO SMALL".
+           WRITE SATISFIED-LINE-OUT FROM DETAIL-LINE
+               AFTER ADVANCING 2 LINES.
+           ADD 2 TO AC-LINE-COUNT.
+           ADD 1 TO AC-RECORD-COUNT.
+          
+           IF AC-LINE-COUNT > 55
+           MOVE ZERO TO AC-LINE-COUNT.
+      
+           READ CUSTOMER-SALES-FILE INTO CUSTOMER-SALES-RECORD
+               AT END MOVE "Y" TO SW-END-OF-FILE.
+      
+       B-200-EXIT.
+           EXIT.
+      /
+      ***********************************************************
+      *                                                         *
+      *                    HEADER PARAGRAPH                     *
+      *                                                         *
+      *********************************************************** 
+      
+       B-300-PRINT-HEADINGS.
+
+
+       ADD 1 TO AC-PAGE-COUNT.
+       MOVE AC-PAGE-COUNT TO RH-PAGE-COUNT.
+       WRITE SATISFIED-LINE-OUT FROM RH-LINE-1
+           AFTER ADVANCING PAGE.
+       WRITE SATISFIED-LINE-OUT FROM RH-LINE-2
+           AFTER ADVANCING 1 LINE.
+       WRITE SATISFIED-LINE-OUT FROM RH-LINE-2A
+           AFTER ADVANCING 1 LINE.
+       WRITE SATISFIED-LINE-OUT FROM RH-LINE-3
+           AFTER ADVANCING 1 LINE.
+       WRITE SATISFIED-LINE-OUT FROM RH-LINE-4
+           AFTER ADVANCING 1 LINE.
+       WRITE SATISFIED-LINE-OUT FROM RH-LINE-5 AFTER ADVANCING 1 LINE.
+           MOVE 6 TO AC-LINE-COUNT.
+
+      / 
+      
+      ***********************************************************
+      *                                                         *
+      *                  END OF JOB PARAGRAPH                   *
+      *                                                         *
+      ***********************************************************  
+
+       C-100-WRAP-UP.
+
+       WRITE SATISFIED-LINE-OUT FROM SL-LINE-1
+           AFTER ADVANCING 3 LINES.
+       WRITE SATISFIED-LINE-OUT FROM SL-LINE-2
+           AFTER ADVANCING 1 LINE.
+       WRITE SATISFIED-LINE-OUT FROM SL-LINE-3
+           AFTER ADVANCING 1 LINE.
+       WRITE SATISFIED-LINE-OUT FROM SL-LINE-4
+           AFTER ADVANCING 2 LINES.
+
+       CLOSE CUSTOMER-SALES-FILE
+           SATISFIED-CUSTOMER-REPORT.
+
+       DISPLAY "THE SATISFIED CUSTOMER REPORT PROGRAM HAS ENDED".
+
+      / 
+
+      ***********************************************************
+      *                                                         *
+      *END OF PROGRAM                                           *
+      *                                                         *
+      ***********************************************************
+
+       END PROGRAM.

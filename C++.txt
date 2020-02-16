@@ -1,0 +1,87 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
+
+using namespace std;
+
+void getData(ifstream& inf, string names[], double testData[][6], int count);
+void calculateAverage(double testData[][6], int count);
+char calculateGrade(double testData[][6], char grade[], int count);
+void print(string names[], double testData[][6], char grade[], int count);
+  
+int main()
+{
+string names[10];
+double testData[10][6];
+char grade[10];
+
+ifstream inFile;
+inFile.open("Data.txt"); 
+
+if (!inFile)
+{
+cout << "Cannot open the input file: Data.txt." << endl;
+cout << "Program terminates!" << endl;
+return 1;
+}
+
+cout << fixed << showpoint << setprecision(2);
+
+getData(inFile, names, testData, 10);
+calculateGrade(testData, grade, 10);
+calculateAverage(testData, grade, 10);    
+print(names, testData, grade, 10);
+inFile.close();
+
+return 0;
+}
+
+void getData(ifstream& inFile, string names[], double testData[][6], int count)
+{ 
+void calculateAverage(double testData[][6], char grade, int count)
+{ 
+if(avg >= 90 && avg <= 100)
+return "A";
+else if(avg >= 80 && avg <= 89)
+return "B";
+else if(avg >= 70 && avg <= 79)
+return "C";
+int i = 0;
+    
+while (inFile >> names[i]) {
+for (int j = 0; j < 5; j++)
+inFile >> testData[i][j];
+i++;   
+        
+    
+}
+
+else if(avg >= 60 && avg <= 69)
+return "D";
+else if(avg >= 50 && avg <= 59)
+return "F"; 
+}
+char calculateGrade(double testData[][6], char grade[], int count)
+{
+if(grade >= 90 && grade <= 100)
+return "A";
+else if(grade >= 80 && grade <= 89)
+return "B";
+else if(grade >= 70 && grade <= 79)
+return "C";
+else if(grade >= 60 && grade <= 69)
+return "D";
+else if(grade >= 50 && grade <= 59)
+return "F";
+}
+void print(string names[], double testData[][6], char grade[], int count)
+{
+for (int i=0; i < n; i++){
+cout << set(10) << names[i];
+for(int k=0; k<5; k++)
+cout << setw(8) << testData[i][k];
+cout << endl;
+}  
+}  
+}

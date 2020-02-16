@@ -1,0 +1,84 @@
+import java.io.*;
+import java.util.*;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
+
+class LoanProgram
+   {
+      private static DecimalFormat df = new DecimalFormat("#.00");
+      
+      public static void main(String[] args) throws IOException
+      {
+      double months;
+      int paymentNo = 1;
+      double totalMonths;
+      double loanAmount;
+      double balance;
+      double newBalance;
+      double loanAmountDue;
+      double leftOnLoan;
+      double interestRate;
+      double monthlyIntRate;
+      double interestPaid;
+      double monthlyPayment;
+      double principlePaid;
+      
+      FileWriter fw = new FileWriter(new File("LoanPayment.txt"));
+      BufferedWriter pw = new BufferedWriter(fw);
+      Scanner s = new Scanner(System.in); 
+        
+      System.out.print("Enter the loan amount: ");
+      loanAmount = s.nextDouble();
+      balance = loanAmount;
+      System.out.println();
+      System.out.print("Enter the interest rate (ex 5.75): ");
+      interestRate = s.nextDouble();
+      System.out.println();
+      System.out.print("Enter the monthly payment: ");
+      monthlyPayment = s.nextDouble(); 
+      System.out.println();
+      
+      totalMonths = loanAmount / monthlyPayment;
+      pw.write("Left on Loan\t" + "Principle Paid\t" + "Interest Paid");
+      pw.newLine();
+      NumberFormat f = NumberFormat.getCurrencyInstance();
+      monthlyIntRate = (interestRate / 100) / 12;
+      interestPaid = loanAmount * monthlyIntRate;
+      principlePaid = monthlyPayment - interestPaid;
+      
+      
+      for (int i = 0; balance > 0; i++){        
+         interestPaid = monthlyIntRate * balance;
+         principlePaid = monthlyPayment - interestPaid;
+         newBalance = balance - principlePaid;
+         String n = f.format(newBalance);
+         String p = f.format(principlePaid);
+         String t = f.format(interestPaid);
+         pw.write(n + "\t" + p + "\t\t" + t);
+         pw.newLine();
+         System.out.println("Amount left on loan after payment " + "#" + paymentNo + " is " +
+         (df.format(newBalance) + "  Principle " + (df.format(principlePaid) + "   Interest " + 
+         (df.format(interestPaid)))));
+         balance = newBalance; 
+         paymentNo++;
+         i++;
+        } 
+       
+       pw.close();
+       
+       int x = (int) totalMonths;
+       System.out.println();                   
+       System.out.print("Original loan amount is........... " + (df.format(loanAmount)));
+       System.out.println();
+       System.out.print("Interest rate is.................. " + (df.format(interestRate)));
+       System.out.println();
+       System.out.print("Monthly payment amount is......... " + (df.format(monthlyPayment)));
+       System.out.println();
+       System.out.print("Number of months to pay off loan.. " + x);      
+       }
+      
+       
+      
+    
+ }
+      
